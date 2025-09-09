@@ -1,65 +1,58 @@
 import { useEffect, useState } from "react"
-import "./CSS/level1.css"
 import { useNavigate } from "react-router-dom"
+import "./CSS/level1.css"
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("")
 
 export const Level1 = () => {
-  const [nextSlot, setNextSlot] = useState("A")
-  const slot1 = ["a", "b", "c", "d", "e", "f"]
-//   const slot2 = ["a", "b", "c", "d", "e", "f"]
-//   const slot3 = ["a", "b", "c", "d", "e", "f"]
-//   const slot4 = ["a", "b", "c", "d", "e", "f"]
-//   const slot5 = ["a", "b", "c", "d", "e", "f"]
-//   const slot6 = ["a", "b", "c", "d", "e", "f"]
+  const [charIndex, setCharIndex] = useState(0) // 0 = 'a'
   const navigate = useNavigate()
 
   useEffect(() => {
-    const saved = localStorage.getItem("nextSlot_level1")
-    if (saved) {
-      setNextSlot(saved)
-    }
+    const saved = localStorage.getItem("level1_sub1_charIndex")
+    if (saved !== null) setCharIndex(Number(saved))
   }, [])
 
-  const handleClick = (lvl: string) => {
-    const currentIndex = slot1.indexOf(lvl)
-    if (currentIndex < slot1.length - 1) {
-      const newSlot = slot1[currentIndex + 1]
-      setNextSlot(newSlot)
-      localStorage.setItem("nextSlot_level1", newSlot)
+  const handleAdvance = () => {
+    if (charIndex < ALPHABET.length - 1) {
+      const next = charIndex + 1
+      setCharIndex(next)
+      localStorage.setItem("level1_sub1_charIndex", String(next))
     } else {
-      const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1")
-
-      if (unlockedLevel < 2) {
-        localStorage.setItem("unlockedLevel", "2")
-      }
-
-      navigate("/")
+      // selesai 'z' -> buka sublevel2
+      localStorage.setItem("unlockedSubLevel_level1", "2")
+      navigate("/level1")
     }
   }
+
+  
 
   return (
     <div className="containerLv1">
       <div className="titleBox">
-        Tempelkan 1 Huruf <br /> Seperti Pada Gambar
+        Sublevel 1 — Gunakan 1 Slot (a → z)
       </div>
 
+      {/* Selalu 6 kotak, hanya kotak pertama yang terpakai */}
       <div className="board">
-        {slot1.map((lvl) => (
-          <div key={lvl}>
-            {lvl <= nextSlot ? (
-              <div
-                className="slot filled"
-                onClick={lvl === nextSlot ? () => handleClick(lvl) : undefined}
-              >
-                <span className="letter">{lvl}</span>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i}>
+            {i === 0 ? (
+              <div className="slot filled" onClick={handleAdvance}>
+                <span className="letter">{ALPHABET[charIndex]}</span>
               </div>
             ) : (
-              <div className="slot"></div>
+              <div className="slot" />
             )}
           </div>
         ))}
       </div>
 
-      {nextSlot === "D" && (
+      <div className="info">
+        Huruf saat ini: <b>{ALPHABET[charIndex]}</b> — klik kotak hijau untuk lanjut
+      </div>
+
+      {charIndex === 25 && (
         <div className="buttons">
           <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
           <button
