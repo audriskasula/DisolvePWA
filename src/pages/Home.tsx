@@ -1,26 +1,26 @@
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
 
 export const Home = () => {
-  const [unlockedLevel, setUnlockedLevel] = useState(1);
-  const levels = [1, 2, 3, 4];
+  const [unlockedLevel, setUnlockedLevel] = useState(1)
+  const levels = [1, 2, 3, 4]
 
   useEffect(() => {
-    const saved = localStorage.getItem("unlockedLevel");
+    const saved = localStorage.getItem("unlockedLevel")
     if (saved) {
-      setUnlockedLevel(Number(saved));
+      setUnlockedLevel(Number(saved))
     }
 
     const handleStorageChange = () => {
-      const updated = localStorage.getItem("unlockedLevel");
+      const updated = localStorage.getItem("unlockedLevel")
       if (updated) {
-        setUnlockedLevel(Number(updated));
+        setUnlockedLevel(Number(updated))
       }
-    };
+    }
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
+  }, [])
 
   return (
     <div className="background px-20 py-5">
@@ -45,5 +45,5 @@ export const Home = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
