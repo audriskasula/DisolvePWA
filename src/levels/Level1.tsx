@@ -1,33 +1,40 @@
-import { useEffect, useState } from "react";
-import "./CSS/level1.css";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"
+import "./CSS/level1.css"
+import { useNavigate } from "react-router-dom"
 
 export const Level1 = () => {
-  const [nextSlot, setNextSlot] = useState("A");
-  const slot = ["A", "B", "C", "D"];
-  const navigate = useNavigate();
+  const [nextSlot, setNextSlot] = useState("A")
+  const slot1 = ["a", "b", "c", "d", "e", "f"]
+//   const slot2 = ["a", "b", "c", "d", "e", "f"]
+//   const slot3 = ["a", "b", "c", "d", "e", "f"]
+//   const slot4 = ["a", "b", "c", "d", "e", "f"]
+//   const slot5 = ["a", "b", "c", "d", "e", "f"]
+//   const slot6 = ["a", "b", "c", "d", "e", "f"]
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const saved = localStorage.getItem("nextSlot_level1");
+    const saved = localStorage.getItem("nextSlot_level1")
     if (saved) {
-      setNextSlot(saved);
+      setNextSlot(saved)
     }
-  }, []);
+  }, [])
 
   const handleClick = (lvl: string) => {
-    const currentIndex = slot.indexOf(lvl);
-    if (currentIndex < slot.length - 1) {
-      const newSlot = slot[currentIndex + 1];
-      setNextSlot(newSlot);
-      localStorage.setItem("nextSlot_level1", newSlot);
+    const currentIndex = slot1.indexOf(lvl)
+    if (currentIndex < slot1.length - 1) {
+      const newSlot = slot1[currentIndex + 1]
+      setNextSlot(newSlot)
+      localStorage.setItem("nextSlot_level1", newSlot)
     } else {
-      const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1");
+      const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1")
+
       if (unlockedLevel < 2) {
-        localStorage.setItem("unlockedLevel", "2");
+        localStorage.setItem("unlockedLevel", "2")
       }
-      navigate("/");
+
+      navigate("/")
     }
-  };
+  }
 
   return (
     <div className="containerLv1">
@@ -36,7 +43,7 @@ export const Level1 = () => {
       </div>
 
       <div className="board">
-        {slot.map((lvl) => (
+        {slot1.map((lvl) => (
           <div key={lvl}>
             {lvl <= nextSlot ? (
               <div
@@ -57,11 +64,11 @@ export const Level1 = () => {
           <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
           <button
             onClick={() => {
-              const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1");
+              const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1")
               if (unlockedLevel < 2) {
-                localStorage.setItem("unlockedLevel", "2");
+                localStorage.setItem("unlockedLevel", "2")
               }
-              navigate("/level2");
+              navigate("/level2")
             }}
           >
             ➡️ Lanjut Level 2
@@ -69,5 +76,5 @@ export const Level1 = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
