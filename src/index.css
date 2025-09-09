@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+.background {
+  background-color: blueviolet;
+}
+
+.level1 {
+  background-image: url('level1.png');
+  background-position: center;
+  background-size: cover;
+}
+
+.containerLv1 {
+  background-color: rgb(20, 20, 70);
+  height: 100vh;
+  color: white;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.titleBox {
+  background: linear-gradient(to right, #5d92d1, #2e3d83);
+  border: white solid 1px;
+  border-radius: 10rem;
+  padding: 0.8rem 2rem;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.board {
+  background-color: #19194d;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.slot {
+  width: 15rem;
+  height: 25rem;
+  background-color: #c62828;
+  border: 2px dashed white;
+  border-radius: 0.7rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.filled {
+  background-color: #4caf50;
+}
+
+.letter {
+  font-size: 20rem;
+  font-weight: bold;
+  color: #ffeb3b;
+  text-shadow: 2px 2px 0px black;
+  font-family: sans-serif;
+}
