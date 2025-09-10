@@ -1,4 +1,3 @@
-import React from 'react'
 
 export const Level3 = () => {
   return (

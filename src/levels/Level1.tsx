@@ -26,11 +26,10 @@ export const Level1 = () => {
   }
 
   
-
   return (
     <div className="containerLv1">
       <div className="titleBox">
-        Sublevel 1 — Gunakan 1 Slot (a → z)
+        Tempelkan 1 Huruf Seperti Pada Gambar
       </div>
 
       {/* Selalu 6 kotak, hanya kotak pertama yang terpakai */}
