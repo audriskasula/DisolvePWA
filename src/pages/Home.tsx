@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 
 export const Home = () => {
   const [unlockedLevel, setUnlockedLevel] = useState(1)
-  const levels = [1, 2, 3, 4]
+  const levels = [1, 2, 3, 4, 5, 6]
 
   useEffect(() => {
     const saved = localStorage.getItem("unlockedLevel")
@@ -24,7 +24,7 @@ export const Home = () => {
 
   return (
     <div className="background px-20 py-5">
-      <h1 className="text-2xl font-bold text-center mb-6">🏠 Home</h1>
+      <h1 className="text-2xl font-bold text-center mb-6 text-white">WELCOME TO DISOLVE</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
         {levels.map((lvl) => (
           <div
