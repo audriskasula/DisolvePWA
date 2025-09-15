@@ -21,7 +21,7 @@ export const Level5 = () => {
       setIndex(next)
       localStorage.setItem("level5_index", String(next))
     } else {
-      // selesai → unlock Level 4
+      // selesai → unlock Level 6
       localStorage.setItem("unlockedLevel", "6")
       navigate("/level6")
     }
@@ -32,11 +32,12 @@ export const Level5 = () => {
   const second = pair[1]
   const third = pair[2]
   const fourth = pair[3]
+  const fifth = pair[4]
 
   return (
     <div className="containerLv1">
       <div className="titleBox">
-        Level 4 — Kombinasi Khusus
+        Level 5 — Kata Sederhana
       </div>
 
       <div className="board">
@@ -58,6 +59,10 @@ export const Level5 = () => {
               <div className="slot filled" onClick={handleAdvance}>
                 <span className="letter">{fourth}</span>
               </div>
+            ) : idx === 4 ? (
+              <div className="slot filled" onClick={handleAdvance}>
+                <span className="letter">{fifth}</span>
+              </div>
             ) : (
               <div className="slot" />
             )}
@@ -66,7 +71,7 @@ export const Level5 = () => {
       </div>
 
       <div className="info">
-        Huruf saat ini: <b>{COMBINATIONS[index]}  ({index+1}/{COMBINATIONS.length})</b> — klik kotak hijau untuk lanjut
+        Kata saat ini: <b>{COMBINATIONS[index]}  ({index + 1}/{COMBINATIONS.length})</b> — klik kotak hijau untuk lanjut
       </div>
 
       {index === 4 && (
@@ -74,14 +79,14 @@ export const Level5 = () => {
           <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
           <button
             onClick={() => {
-              const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "4")
-              if (unlockedLevel < 2) {
-                localStorage.setItem("unlockedLevel", "5")
+              const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "5")
+              if (unlockedLevel < 6) {
+                localStorage.setItem("unlockedLevel", "6")
               }
-              navigate("/level5")
+              navigate("/level6")
             }}
           >
-            ➡️ Lanjut Level 5
+            ➡️ Lanjut Level 6
           </button>
         </div>
       )}

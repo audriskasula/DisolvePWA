@@ -21,7 +21,7 @@ export const Level4 = () => {
       setIndex(next)
       localStorage.setItem("level4_index", String(next))
     } else {
-      // selesai → unlock Level 4
+      // selesai → unlock Level 5
       localStorage.setItem("unlockedLevel", "5")
       navigate("/level5")
     }
@@ -66,7 +66,7 @@ export const Level4 = () => {
       </div>
 
       <div className="info">
-        Huruf saat ini: <b>{COMBINATIONS[index]}  ({index+1}/{COMBINATIONS.length})</b> — klik kotak hijau untuk lanjut
+        Huruf saat ini: <b>{COMBINATIONS[index]}  ({index + 1}/{COMBINATIONS.length})</b> — klik kotak hijau untuk lanjut
       </div>
 
       {index === 4 && (
@@ -75,7 +75,7 @@ export const Level4 = () => {
           <button
             onClick={() => {
               const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "4")
-              if (unlockedLevel < 2) {
+              if (unlockedLevel < 5) {
                 localStorage.setItem("unlockedLevel", "5")
               }
               navigate("/level5")
