@@ -2,14 +2,14 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import "./CSS/level1.css"
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("")
+const ALPHABET = "abcde".split("")
 
 export const Level1 = () => {
   const [charIndex, setCharIndex] = useState(0) // 0 = 'a'
   const navigate = useNavigate()
 
   useEffect(() => {
-    const saved = localStorage.getItem("level1_sub1_charIndex")
+    const saved = localStorage.getItem("level1_index")
     if (saved !== null) setCharIndex(Number(saved))
   }, [])
 
@@ -25,7 +25,7 @@ export const Level1 = () => {
     }
   }
 
-  
+
   return (
     <div className="containerLv1">
       <div className="titleBox">
@@ -48,7 +48,7 @@ export const Level1 = () => {
       </div>
 
       <div className="info">
-        Huruf saat ini: <b>{ALPHABET[charIndex]}</b> — klik kotak hijau untuk lanjut
+        Huruf saat ini: <b>{ALPHABET[charIndex]}  ({charIndex+1}/{ALPHABET.length})</b> — klik kotak hijau untuk lanjut
       </div>
 
       {charIndex === 4 && (
