@@ -53,7 +53,7 @@ export const Level1 = () => {
 
       {charIndex === 25 && (
         <div className="buttons">
-          <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
+          <button onClick={() => navigate("/")}>🏠 Back to Home</button>
           <button
             onClick={() => {
               const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1")
