@@ -24,12 +24,16 @@ export const Home = () => {
 
   return (
     <div className="background px-20 py-5">
-      <h1 className="text-2xl font-bold text-center mb-6 text-white">WELCOME TO DISOLVE</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+      <h1 className="text-2xl font-bold text-center mb-6 text-white">
+        WELCOME TO DISSOLVE
+      </h1>
+
+      {/* Wrapper scroll */}
+      <div className="flex justify-center overflow-x-auto gap-4 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent">
         {levels.map((lvl) => (
           <div
             key={lvl}
-            className="w-full h-80 bg-amber-50 flex items-center justify-center rounded-lg shadow-md"
+            className="min-w-[200px] h-80 bg-amber-50 flex items-center justify-center rounded-lg shadow-md"
           >
             {lvl <= unlockedLevel ? (
               <Link
@@ -45,5 +49,6 @@ export const Home = () => {
         ))}
       </div>
     </div>
+
   )
 }
