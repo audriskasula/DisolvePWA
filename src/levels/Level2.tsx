@@ -65,7 +65,7 @@ export const Level2 = () => {
           <button
             onClick={() => {
               const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "2")
-              if (unlockedLevel < 2) {
+              if (unlockedLevel < 3) {
                 localStorage.setItem("unlockedLevel", "3")
               }
               navigate("/level3")
