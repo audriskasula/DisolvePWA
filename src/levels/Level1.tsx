@@ -17,11 +17,11 @@ export const Level1 = () => {
     if (charIndex < ALPHABET.length - 1) {
       const next = charIndex + 1
       setCharIndex(next)
-      localStorage.setItem("level1_sub1_charIndex", String(next))
+      localStorage.setItem("level1_index", String(next))
     } else {
       // selesai 'z' -> buka sublevel2
-      localStorage.setItem("unlockedSubLevel_level1", "2")
-      navigate("/level1")
+      localStorage.setItem("unlockedLevel", "2")
+      navigate("/level2")
     }
   }
 
@@ -51,9 +51,9 @@ export const Level1 = () => {
         Huruf saat ini: <b>{ALPHABET[charIndex]}</b> — klik kotak hijau untuk lanjut
       </div>
 
-      {charIndex === 25 && (
+      {charIndex === 4 && (
         <div className="buttons">
-          <button onClick={() => navigate("/")}>🏠 Back to Home</button>
+          <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
           <button
             onClick={() => {
               const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "1")
