@@ -3,26 +3,7 @@ import { useNavigate } from "react-router-dom"
 import "./CSS/level1.css"
 
 const COMBINATIONS = [
-  "ba","bi","bu","be","bo",
-  "ca","ci","cu","ce","co",
-  "da","di","du","de","do",
-  "fa","fi","fu","fe","fo",
-  "ga","gi","gu","ge","go",
-  "ha","hi","hu","he","ho",
-  "ja","ji","ju","je","jo",
-  "ka","ki","ku","ke","ko",
-  "la","li","lu","le","lo",
-  "ma","mi","mu","me","mo",
-  "na","ni","nu","ne","no",
-  "pa","pi","pu","pe","po",
-  "qa","qi","qu","qe","qo",
-  "ra","ri","ru","re","ro",
-  "ta","ti","tu","te","to",
-  "va","vi","vu","ve","vo",
-  "wa","wi","wu","we","wo",
-  "xa","xi","xu","xe","xo",
-  "ya","yi","yu","ye","yo",
-  "za","zi","zu","ze","zo"
+  "bd", "pq", "wm", "ad", "bp"
 ]
 
 export const Level2 = () => {
@@ -30,7 +11,7 @@ export const Level2 = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const saved = localStorage.getItem("level1_sub2_index")
+    const saved = localStorage.getItem("level2_index")
     if (saved) setIndex(Number(saved))
   }, [])
 
@@ -38,11 +19,11 @@ export const Level2 = () => {
     if (index < COMBINATIONS.length - 1) {
       const next = index + 1
       setIndex(next)
-      localStorage.setItem("level1_sub2_index", String(next))
+      localStorage.setItem("level2_index", String(next))
     } else {
-      // selesai → unlock Level 2
-      localStorage.setItem("unlockedLevel", "2")
-      navigate("/")
+      // selesai → unlock Level 3
+      localStorage.setItem("unlockedLevel", "3")
+      navigate("/level3")
     }
   }
 
@@ -53,7 +34,7 @@ export const Level2 = () => {
   return (
     <div className="containerLv1">
       <div className="titleBox">
-        Sublevel 2 — Kombinasi Khusus
+        Level 2 — Kombinasi Khusus
       </div>
 
       <div className="board">
@@ -75,8 +56,25 @@ export const Level2 = () => {
       </div>
 
       <div className="info">
-        Kombinasi saat ini: <b>{pair}</b> ({index + 1}/{COMBINATIONS.length})
+        Huruf saat ini: <b>{COMBINATIONS[index]}  ({index+1}/{COMBINATIONS.length})</b> — klik kotak hijau untuk lanjut
       </div>
+
+      {index === 4 && (
+        <div className="buttons">
+          <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
+          <button
+            onClick={() => {
+              const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "2")
+              if (unlockedLevel < 2) {
+                localStorage.setItem("unlockedLevel", "3")
+              }
+              navigate("/level3")
+            }}
+          >
+            ➡️ Lanjut Level 3
+          </button>
+        </div>
+      )}
     </div>
   )
 }
