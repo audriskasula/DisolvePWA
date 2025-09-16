@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
+import BLE from "../components/ble";
 
-export const Home = () => {
+export default function Home() {
   const [unlockedLevel, setUnlockedLevel] = useState(1)
   const levels = [1, 2, 3, 4, 5, 6]
 
@@ -28,7 +29,12 @@ export const Home = () => {
         WELCOME TO DISSOLVE
       </h1>
 
-      {/* Wrapper scroll */}
+      {/* Tambahkan BLE component di halaman Home */}
+      <div className="mb-6 flex justify-center">
+        <BLE />
+      </div>
+
+      {/* Wrapper scroll untuk level */}
       <div className="flex justify-center overflow-x-auto gap-4 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent">
         {levels.map((lvl) => (
           <div
@@ -49,6 +55,5 @@ export const Home = () => {
         ))}
       </div>
     </div>
-
-  )
+  );
 }
