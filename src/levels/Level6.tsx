@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import "./CSS/level1.css"
 
 const COMBINATIONS = [
-  "berani", "rambut", "nangis", "abidin", "berdoa"
+  "berani", "rambut", "tangis", "abidin", "berdoa"
 ]
 
 export const Level6 = () => {
