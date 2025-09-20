@@ -1,34 +1,41 @@
 .containerLv1 {
   background-color: rgb(20, 20, 70);
-  height: 100vh;
+  min-height: 100vh;
+  width: 100%;
   color: white;
-  padding: 4rem 2rem;
+  padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .titleBox {
   background: linear-gradient(to right, #5d92d1, #2e3d83);
   border: white solid 1px;
   border-radius: 10rem;
-  padding: 0.8rem 2rem;
-  font-size: 2rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 1.2rem;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  max-width: 90%;
 }
 
 .board {
   background-color: #19194d;
   padding: 1rem;
-  display: flex;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* selalu 6 kotak */
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .slot {
-  width: 14rem;
-  height: 25rem;
+  width: 100%;
+  aspect-ratio: 3 / 5; /* tinggi otomatis sesuai lebar */
   background-color: #c62828;
   border: 2px dashed white;
   border-radius: 0.7rem;
@@ -42,9 +49,33 @@
 }
 
 .letter {
-  font-size: 20rem;
+  font-size: clamp(2rem, 6vw, 6rem); /* responsif */
   font-weight: bold;
   color: #ffeb3b;
   text-shadow: 2px 2px 0px black;
   font-family: sans-serif;
+}
+
+.info {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.buttons button {
+  background: #5d92d1;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
 }
