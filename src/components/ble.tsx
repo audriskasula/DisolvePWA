@@ -1,59 +1,17 @@
-// TANPA TRY-CATCH
-// import { useState } from "react";
-
-// // 🔗 UUID konstanta (bisa diimport dari file lain juga)
-// export const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-// export const CHAR_CMD_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-// export const CHAR_NOTIFY_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
-
-// // 🎯 Komponen utama BLE
-// export default function BLE() {
-//   const [data, setData] = useState<string>("No data yet");
-//   const [isConnected, setIsConnected] = useState(false);
-
-//   const connectBLE = async () => {
-//     try {
-//       const device = await (navigator as any).bluetooth.requestDevice({
-//         filters: [{ name: "ESP32_Puzzle_BLE" }],
-//         optionalServices: [SERVICE_UUID],
-//       });
-
-//       const server = await device.gatt.connect();
-//       const service = await server.getPrimaryService(SERVICE_UUID);
-
-//       // 👉 biasanya CMD dipakai untuk kirim data, Notify untuk terima data
-//       const notifyCharacteristic = await service.getCharacteristic(CHAR_NOTIFY_UUID);
-
-//       await notifyCharacteristic.startNotifications();
-//       notifyCharacteristic.addEventListener("characteristicvaluechanged", (event: any) => {
-//         const value = event.target.value;
-//         const decoder = new TextDecoder("utf-8");
-//         setData(decoder.decode(value));
-//       });
-
-//       setIsConnected(true);
-//     } catch (err) {
-//       console.error("BLE error:", err);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <button onClick={connectBLE}>Connect ESP32</button>
-//       <p>Status: {isConnected ? "Connected ✅" : "Disconnected ❌"}</p>
-//       <p>Data: {data}</p>
-//     </div>
-//   );
-// }
-
 import { useState, useRef } from "react";
 
-// 🔗 UUID konstanta
+// Konst UUID
 export const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 export const CHAR_CMD_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // kirim data
 export const CHAR_NOTIFY_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // terima data
 
-export default function BLE() {
+// Define prop types
+interface BLEProps {
+  onData?: (msg: string) => void;
+  onReady?: (sendFn: (msg: string) => Promise<void>) => void;
+}
+
+export default function BLE({ onData, onReady }: BLEProps) {
   const [data, setData] = useState<string>("No data yet");
   const [isConnected, setIsConnected] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -79,11 +37,23 @@ export default function BLE() {
       const notifyCharacteristic = await service.getCharacteristic(CHAR_NOTIFY_UUID);
       await notifyCharacteristic.startNotifications();
 
-      notifyCharacteristic.addEventListener("characteristicvaluechanged", (event: any) => {
-        const value = event.target.value;
-        const decoder = new TextDecoder("utf-8");
-        setData(decoder.decode(value));
-      });
+      notifyCharacteristic.addEventListener(
+        "characteristicvaluechanged",
+        (event: any) => {
+          const value = event.target.value;
+          const decoder = new TextDecoder("utf-8");
+          const decoded = decoder.decode(value);
+
+          // update state lokal
+          setData(decoded);
+
+          // lempar ke parent (Level1.tsx)
+          if (onData) onData(decoded);
+        }
+      );
+       if (onReady) {
+        onReady(sendData);
+      }
     } catch (err) {
       console.error("BLE error:", err);
       setErrorMsg("Gagal koneksi ke ESP32");
@@ -111,10 +81,6 @@ export default function BLE() {
       <p>Status: {isConnected ? "Connected ✅" : "Disconnected ❌"}</p>
       <p>Data dari ESP32: {data}</p>
       {errorMsg && <p style={{ color: "red" }}>Error: {errorMsg}</p>}
-
-      {/* contoh kirim string */}
-      <button onClick={() => sendData("HELLO")}>Kirim HELLO</button>
-      <button onClick={() => sendData("ABCDEF")}>Kirim ABCDEF</button>
     </div>
   );
 }

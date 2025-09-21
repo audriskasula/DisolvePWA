@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import BLE from "../components/ble"
 import "./CSS/level1.css"
 
 const COMBINATIONS = [
@@ -8,6 +9,8 @@ const COMBINATIONS = [
 
 export const Level5 = () => {
   const [index, setIndex] = useState(0)
+  const [bleData, setBleData] = useState("");
+  const [sendFn, setSendFn] = useState<((msg: string) => Promise<void>) | null>(null);
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -15,17 +18,28 @@ export const Level5 = () => {
     if (saved) setIndex(Number(saved))
   }, [])
 
-  const handleAdvance = () => {
-    if (index < COMBINATIONS.length - 1) {
-      const next = index + 1
-      setIndex(next)
-      localStorage.setItem("level5_index", String(next))
-    } else {
-      // selesai → unlock Level 6
-      localStorage.setItem("unlockedLevel", "6")
-      navigate("/level6")
+  useEffect(() => {
+    if (!bleData) return;
+    const expected = COMBINATIONS[index];
+    if (bleData.toLowerCase() === expected.toLowerCase() && bleData.length === expected.length) {
+      if (index < COMBINATIONS.length - 1) {
+        const next = index + 1
+        setIndex(next)
+        localStorage.setItem("level5_index", String(next))
+      } else {
+        // selesai → unlock Level 6
+        localStorage.setItem("unlockedLevel", "6")
+        navigate("/level6")
+      }
     }
-  }
+  }, [bleData]);
+
+  useEffect(() => {
+    if (sendFn) {
+      const currentLetter = COMBINATIONS[index];
+      sendFn(currentLetter); // ⬅️ langsung kirim huruf otomatis
+    }
+  }, [sendFn, index]);
 
   const pair = COMBINATIONS[index]
   const first = pair[0]
@@ -35,7 +49,7 @@ export const Level5 = () => {
   const fifth = pair[4]
 
   return (
-    <div className="containerLv1">
+    <div className="containerLv5">
       <div className="titleBox">
         Level 5 — Kata Sederhana
       </div>
@@ -48,19 +62,19 @@ export const Level5 = () => {
                 <span className="letter">{first}</span>
               </div>
             ) : idx === 1 ? (
-              <div className="slot filled" onClick={handleAdvance}>
+              <div className="slot filled">
                 <span className="letter">{second}</span>
               </div>
             ) : idx === 2 ? (
-              <div className="slot filled" onClick={handleAdvance}>
+              <div className="slot filled">
                 <span className="letter">{third}</span>
               </div>
             ) : idx === 3 ? (
-              <div className="slot filled" onClick={handleAdvance}>
+              <div className="slot filled">
                 <span className="letter">{fourth}</span>
               </div>
             ) : idx === 4 ? (
-              <div className="slot filled" onClick={handleAdvance}>
+              <div className="slot filled">
                 <span className="letter">{fifth}</span>
               </div>
             ) : (
@@ -71,25 +85,14 @@ export const Level5 = () => {
       </div>
 
       <div className="info">
-        Kata saat ini: <b>{COMBINATIONS[index]}  ({index + 1}/{COMBINATIONS.length})</b> — klik kotak hijau untuk lanjut
+        Huruf saat ini:{" "}
+        <b>
+          {COMBINATIONS[index]} ({index + 1}/{COMBINATIONS.length})
+        </b>
       </div>
 
-      {index === 4 && (
-        <div className="buttons">
-          <button onClick={() => navigate("/")}>🏠 Kembali ke Home</button>
-          <button
-            onClick={() => {
-              const unlockedLevel = Number(localStorage.getItem("unlockedLevel") || "5")
-              if (unlockedLevel < 6) {
-                localStorage.setItem("unlockedLevel", "6")
-              }
-              navigate("/level6")
-            }}
-          >
-            ➡️ Lanjut Level 6
-          </button>
-        </div>
-      )}
+      {/* Komponen BLE */}
+      <BLE onData={setBleData} onReady={setSendFn} />
     </div>
   )
 }
