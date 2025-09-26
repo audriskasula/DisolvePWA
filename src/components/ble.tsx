@@ -19,6 +19,7 @@ export default function BLE({ onData, onReady }: BLEProps) {
 
   const connectBLE = async () => { 
     try { 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const device = await (navigator as any).bluetooth.requestDevice({ 
         filters: [{ namePrefix: "Dissolve" }], 
         optionalServices: [SERVICE_UUID], 
@@ -37,6 +38,7 @@ export default function BLE({ onData, onReady }: BLEProps) {
       await notifyCharacteristic.startNotifications(); 
       notifyCharacteristic.addEventListener( 
         "characteristicvaluechanged", 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (event: any) => { 
           const value = event.target.value; 
           const decoder = new TextDecoder("utf-8"); 
@@ -82,7 +84,7 @@ export default function BLE({ onData, onReady }: BLEProps) {
 
   return ( 
     <div> 
-      <button onClick={connectBLE}>Connect ESP32</button> 
+      <button className="buttonConnect mb-5" onClick={connectBLE}>Connect ESP32</button> 
       <p>Status: {isConnected ? "Connected ✅" : "Disconnected ❌"}</p> 
       <p>Data dari ESP32: {data}</p> 
       {errorMsg && <p style={{ color: "red" }}>Error: {errorMsg}</p>} 

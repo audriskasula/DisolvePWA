@@ -34,3 +34,11 @@ html, body {
 .animate-fadeInScale {
   animation: fadeInScale 0.3s ease-out forwards;
 }
+
+.buttonConnect{
+  background: rgb(3, 3, 156);
+  padding: 0.6rem;
+  border-radius: 1rem;
+  color: white;
+  cursor: pointer
+}

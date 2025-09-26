@@ -11,106 +11,117 @@ export const Level1 = () => {
   const [bleData, setBleData] = useState("");
   const [sendFn, setSendFn] = useState<((msg: string) => Promise<void>) | null>(null);
   const [bleReady, setBleReady] = useState(false);
-
-  const [waitingReset, setWaitingReset] = useState(false);
-  const [nextLetter, setNextLetter] = useState<string | null>(null);
-  const [slotCleared, setSlotCleared] = useState(false); // 🔹 untuk UI slot
+  const [isSending, setIsSending] = useState(false); // ⛔ cegah overlap
   const navigate = useNavigate();
 
-  // 🔹 Load progress dari localStorage
+  // 🔹 Ambil progress dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem("level1_index");
     if (saved !== null) setCharIndex(Number(saved));
   }, []);
 
-  // 🔹 Handle data masuk dari BLE
+  // 🔹 Fungsi aman untuk kirim BLE
+  const safeSend = async (msg: string) => {
+    if (!sendFn || isSending) {
+      console.log("⚠️ Skip kirim, sedang kirim data lain:", msg);
+      return;
+    }
+    try {
+      setIsSending(true);
+      console.log("📤 Kirim:", msg);
+      await sendFn(msg);
+      console.log("✅ Data terkirim:", msg);
+    } catch (err) {
+      console.error("❌ Gagal kirim data:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // 🔹 Fungsi bantu
+  const kirimNetral = async () => {
+    await safeSend("NEW_PUZZLE");
+    await new Promise((r) => setTimeout(r, 700)); // beri waktu alat netral (biru)
+  };
+
+  const kirimHuruf = async (letter: string) => {
+    await safeSend(letter);
+  };
+
+  // 🔹 Handle data BLE
   useEffect(() => {
     if (!bleData) return;
 
-    if (bleData.startsWith("NEW_PUZZLE:")) {
-      console.log("Puzzle dimulai:", bleData);
-      return;
-    }
+    console.log("📥 Diterima:", bleData);
 
-    if (bleData.startsWith("CORRECT:")) {
-      console.log("Huruf benar:", bleData);
+    const handleCorrect = async () => {
+      console.log("✅ CORRECT diterima");
 
-      // Jika bukan huruf terakhir, siapkan reset & huruf berikutnya
+      // 1️⃣ Kirim netral dulu
+      await kirimNetral();
+
+      // 2️⃣ Naikkan index dulu
       if (charIndex < ALPHABET.length - 1) {
-        setWaitingReset(true);
-        setNextLetter(ALPHABET[charIndex + 1]);
+        const nextIndex = charIndex + 1;
+        setCharIndex(nextIndex);
+        localStorage.setItem("level1_index", String(nextIndex));
+
+        // 3️⃣ Tunggu sebentar agar state tersinkron
+        await new Promise((r) => setTimeout(r, 300));
+
+        // 4️⃣ Kirim huruf berikutnya
+        await kirimHuruf(ALPHABET[nextIndex]);
       } else {
+        console.log("🎉 Semua huruf benar, pindah ke level 2");
         localStorage.setItem("unlockedLevel", "2");
         navigate("/level2");
       }
+    };
 
-      return;
-    }
+    const handleWrong = async () => {
+      console.log("❌ WRONG diterima");
 
-    if (bleData.startsWith("WRONG:")) {
-      console.log("Huruf salah:", bleData);
-      return;
-    }
+      // 1️⃣ Kirim netral dulu
+      await kirimNetral();
 
-    if (bleData.startsWith("VICTORY")) {
-      console.log("Puzzle selesai!");
-    }
-  }, [bleData, charIndex, navigate]);
+      // 2️⃣ Kirim ulang huruf saat ini
+      await kirimHuruf(ALPHABET[charIndex]);
+    };
 
-  // 🔹 Kirim huruf / RESET
-  useEffect(() => {
-    if (!bleReady || !sendFn) return;
+    const handleNewPuzzle = () => {
+      console.log("🔵 Alat dalam posisi netral (NEW_PUZZLE)");
+      // ❗ Tidak kirim apa pun, biar gak double
+    };
 
     (async () => {
-      try {
-        if (waitingReset && nextLetter) {
-          console.log("📤 Kirim RESET sebelum huruf berikutnya");
-          await sendFn("RESET");
-
-          // kosongkan slot dulu
-          setSlotCleared(true);
-
-          await new Promise(resolve => setTimeout(resolve, 400)); // delay biar ESP32 siap
-          setWaitingReset(false);
-
-          console.log("📤 Kirim huruf:", nextLetter);
-          await sendFn(nextLetter);
-
-          // Update index & simpan progress
-          const nextIndex = charIndex + 1;
-          setCharIndex(nextIndex);
-          localStorage.setItem("level1_index", String(nextIndex));
-
-          setNextLetter(null);
-
-          // setelah huruf baru dikirim, tampilkan lagi di slot
-          setSlotCleared(false);
-          return;
-        }
-
-        // 🔹 Saat refresh halaman / pertama kali
-        if (!waitingReset && charIndex < ALPHABET.length && nextLetter === null) {
-          const currentLetter = ALPHABET[charIndex];
-          console.log("📤 Kirim huruf:", currentLetter);
-          await sendFn(currentLetter);
-        }
-      } catch (err) {
-        console.error("❌ Gagal kirim:", err);
-      }
+      if (bleData.startsWith("NEW_PUZZLE")) return handleNewPuzzle();
+      if (bleData.startsWith("CORRECT")) return handleCorrect();
+      if (bleData.startsWith("WRONG")) return handleWrong();
+      if (bleData.startsWith("VICTORY")) console.log("🏆 Puzzle selesai!");
     })();
-  }, [bleReady, sendFn, charIndex, waitingReset, nextLetter]);
+  }, [bleData, charIndex, navigate]);
+
+  // 🔹 Saat BLE siap → kirim huruf awal
+  useEffect(() => {
+    if (!bleReady || !sendFn) return;
+    (async () => {
+      const current = ALPHABET[charIndex];
+      await safeSend(current);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bleReady, sendFn]); // hanya sekali saat siap
 
   return (
     <div className="containerLv1">
       <div className="titleBox">Tempelkan 1 Huruf Seperti Pada Gambar</div>
 
+      {/* papan huruf */}
       <div className="board">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i}>
             {i === 0 ? (
               <div className="slot filled">
-                {/* 🔹 Jangan tampilkan huruf kalau slotCleared true */}
-                {!slotCleared && <span className="letter">{ALPHABET[charIndex]}</span>}
+                <span className="letter">{ALPHABET[charIndex]}</span>
               </div>
             ) : (
               <div className="slot" />
@@ -119,6 +130,7 @@ export const Level1 = () => {
         ))}
       </div>
 
+      {/* info huruf */}
       <div className="info">
         Huruf saat ini:{" "}
         <b>
@@ -126,6 +138,7 @@ export const Level1 = () => {
         </b>
       </div>
 
+      {/* BLE */}
       <BLE
         onData={setBleData}
         onReady={(fn) => {

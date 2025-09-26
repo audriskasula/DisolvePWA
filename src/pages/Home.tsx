@@ -107,7 +107,7 @@ export default function Home() {
           <div className="relative bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md animate-fadeInScale">
             <button
               onClick={() => setIsBleOpen(false)}
-              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              className="absolute top-2 right-2 text-gray-600 hover:text-black cursor-pointer"
             >
               ✖
             </button>
