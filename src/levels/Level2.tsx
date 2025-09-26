@@ -28,7 +28,7 @@ export const Level2 = () => {
   // 🔹 Handle data masuk dari BLE
   useEffect(() => {
     if (!bleData) return
-    const expected = COMBINATIONS[index]
+    // const expected = COMBINATIONS[index]
 
     if (bleData.startsWith("CORRECT:")) {
       console.log("✅ Kombinasi benar:", bleData)
