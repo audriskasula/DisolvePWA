@@ -1,127 +1,131 @@
-// Level1.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BLE from "../components/ble";
 import "./CSS/level1.css";
+import { useBLE } from "../components/BLEContext";
 
-const ALPHABET = "abcfe".split("");
+// Huruf-huruf yang harus discan
+const ALPHABET = "abcfx".split("");
 
-export const Level1 = () => {
-  const [charIndex, setCharIndex] = useState(0);
-  const [bleData, setBleData] = useState("");
-  const [sendFn, setSendFn] = useState<((msg: string) => Promise<void>) | null>(null);
-  const [bleReady, setBleReady] = useState(false);
-  const [isSending, setIsSending] = useState(false); // ⛔ cegah overlap
+// Fungsi bantu delay
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export default function Level1() {
+  const { isConnected, send, subscribe } = useBLE();
   const navigate = useNavigate();
 
-  // 🔹 Ambil progress dari localStorage
-  useEffect(() => {
+  // 📌 Simpan index huruf saat ini
+  const [charIndex, setCharIndex] = useState(() => {
     const saved = localStorage.getItem("level1_index");
-    if (saved !== null) setCharIndex(Number(saved));
-  }, []);
+    return saved ? Number(saved) : 0;
+  });
 
-  // 🔹 Fungsi aman untuk kirim BLE
-  const safeSend = async (msg: string) => {
-    if (!sendFn || isSending) {
-      console.log("⚠️ Skip kirim, sedang kirim data lain:", msg);
-      return;
-    }
-    try {
-      setIsSending(true);
-      console.log("📤 Kirim:", msg);
-      await sendFn(msg);
-      console.log("✅ Data terkirim:", msg);
-    } catch (err) {
-      console.error("❌ Gagal kirim data:", err);
-    } finally {
-      setIsSending(false);
-    }
-  };
+  // 📌 Ref untuk logic listener
+  const charIndexRef = useRef(charIndex);
+  const isWaitingResetRef = useRef(false);
+  const lastWasWrongRef = useRef(false); // ✅ tracking kondisi terakhir
 
-  // 🔹 Fungsi bantu
-  const kirimNetral = async () => {
-    await safeSend("NEW_PUZZLE");
-    await new Promise((r) => setTimeout(r, 700)); // beri waktu alat netral (biru)
-  };
-
-  const kirimHuruf = async (letter: string) => {
-    await safeSend(letter);
-  };
-
-  // 🔹 Handle data BLE
+  // 🔁 Sinkronisasi ref
   useEffect(() => {
-    if (!bleData) return;
+    charIndexRef.current = charIndex;
+  }, [charIndex]);
 
-    console.log("📥 Diterima:", bleData);
+  // 🔹 Listener BLE
+  useEffect(() => {
+    console.log("📡 Listener BLE aktif");
 
-    const handleCorrect = async () => {
-      console.log("✅ CORRECT diterima");
+    const unsub = subscribe(async (msg) => {
+      console.log("📥 Pesan dari alat:", msg);
+      const currentIndex = charIndexRef.current;
+      const currentLetter = ALPHABET[currentIndex];
 
-      // 1️⃣ Kirim netral dulu
-      await kirimNetral();
+      if (msg.startsWith("CORRECT")) {
+        console.log(`✅ CORRECT (${currentLetter}) → delay lalu kirim RESET`);
+        lastWasWrongRef.current = false;
+        isWaitingResetRef.current = true;
 
-      // 2️⃣ Naikkan index dulu
-      if (charIndex < ALPHABET.length - 1) {
-        const nextIndex = charIndex + 1;
-        setCharIndex(nextIndex);
-        localStorage.setItem("level1_index", String(nextIndex));
+        // ⏳ Delay 800ms sebelum kirim RESET
+        await delay(2000);
+        await send("RESET");
+      } 
+      else if (msg.startsWith("WRONG")) {
+        console.log(`❌ WRONG (${currentLetter}) → delay lalu kirim RESET`);
+        lastWasWrongRef.current = true;
+        isWaitingResetRef.current = true;
 
-        // 3️⃣ Tunggu sebentar agar state tersinkron
-        await new Promise((r) => setTimeout(r, 300));
+        // ⏳ Delay 800ms sebelum kirim RESET
+        await delay(2000);
+        await send("RESET");
+      } 
+      else if (msg.startsWith("PUZZLE_RESET") || msg.startsWith("NEW_PUZZLE")) {
+        console.log("🔵 Alat siap puzzle baru");
 
-        // 4️⃣ Kirim huruf berikutnya
-        await kirimHuruf(ALPHABET[nextIndex]);
-      } else {
-        console.log("🎉 Semua huruf benar, pindah ke level 2");
-        localStorage.setItem("unlockedLevel", "2");
-        navigate("/level2");
+        // Hanya proses jika sebelumnya kita sedang menunggu reset
+        if (isWaitingResetRef.current) {
+          isWaitingResetRef.current = false;
+
+          if (lastWasWrongRef.current) {
+            // ❌ Ulang huruf yang sama
+            console.log(`↩️ Ulang huruf karena salah: ${currentLetter}`);
+            // Delay kecil biar alat sempat biru dulu
+            await delay(2000);
+            await send(currentLetter);
+          } else {
+            // ✅ Lanjut huruf berikutnya
+            const nextIndex = currentIndex + 1;
+            if (nextIndex < ALPHABET.length) {
+              const nextLetter = ALPHABET[nextIndex];
+              console.log(`➡️ Kirim huruf berikut: ${nextLetter}`);
+
+              setCharIndex(nextIndex);
+              localStorage.setItem("level1_index", String(nextIndex));
+              charIndexRef.current = nextIndex;
+
+              // Delay kecil sebelum kirim huruf baru
+              await delay(2000);
+              await send(nextLetter);
+            } else {
+              console.log("🏁 Semua huruf benar, Level1 selesai!");
+              await delay(2000);
+              await send("VICTORY");
+              localStorage.setItem("unlockedLevel", "2");
+              navigate("/level2");
+            }
+          }
+        }
       }
+    });
+
+    return () => {
+      console.log("🛑 Listener BLE dilepas");
+      unsub();
     };
+  }, [send, subscribe, navigate]);
 
-    const handleWrong = async () => {
-      console.log("❌ WRONG diterima");
-
-      // 1️⃣ Kirim netral dulu
-      await kirimNetral();
-
-      // 2️⃣ Kirim ulang huruf saat ini
-      await kirimHuruf(ALPHABET[charIndex]);
-    };
-
-    const handleNewPuzzle = () => {
-      console.log("🔵 Alat dalam posisi netral (NEW_PUZZLE)");
-      // ❗ Tidak kirim apa pun, biar gak double
-    };
-
-    (async () => {
-      if (bleData.startsWith("NEW_PUZZLE")) return handleNewPuzzle();
-      if (bleData.startsWith("CORRECT")) return handleCorrect();
-      if (bleData.startsWith("WRONG")) return handleWrong();
-      if (bleData.startsWith("VICTORY")) console.log("🏆 Puzzle selesai!");
-    })();
-  }, [bleData, charIndex, navigate]);
-
-  // 🔹 Saat BLE siap → kirim huruf awal
+  // 🔹 Saat pertama kali konek BLE
   useEffect(() => {
-    if (!bleReady || !sendFn) return;
-    (async () => {
-      const current = ALPHABET[charIndex];
-      await safeSend(current);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bleReady, sendFn]); // hanya sekali saat siap
+    if (isConnected) {
+      const letter = ALPHABET[charIndexRef.current];
+      console.log("📶 BLE siap, kirim huruf pertama:", letter);
+      // Delay kecil agar alat siap
+      (async () => {
+        await delay(2000);
+        await send(letter);
+      })();
+    }
+  }, [isConnected, send]);
+
+  const currentLetter = ALPHABET[charIndex];
 
   return (
     <div className="containerLv1">
-      <div className="titleBox">Tempelkan 1 Huruf Seperti Pada Gambar</div>
+      <div className="titleBox">Tempelkan Huruf Sesuai Gambar</div>
 
-      {/* papan huruf */}
       <div className="board">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i}>
             {i === 0 ? (
               <div className="slot filled">
-                <span className="letter">{ALPHABET[charIndex]}</span>
+                <span className="letter">{currentLetter}</span>
               </div>
             ) : (
               <div className="slot" />
@@ -130,22 +134,16 @@ export const Level1 = () => {
         ))}
       </div>
 
-      {/* info huruf */}
       <div className="info">
         Huruf saat ini:{" "}
         <b>
-          {ALPHABET[charIndex]} ({charIndex + 1}/{ALPHABET.length})
+          {currentLetter} ({charIndex + 1}/{ALPHABET.length})
         </b>
       </div>
 
-      {/* BLE */}
-      <BLE
-        onData={setBleData}
-        onReady={(fn) => {
-          setSendFn(() => fn);
-          setBleReady(true);
-        }}
-      />
+      <div className="status">
+        {isConnected ? "✅ Connected" : "❌ Not Connected"}
+      </div>
     </div>
   );
-};
+}
