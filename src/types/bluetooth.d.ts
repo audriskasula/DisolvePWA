@@ -43,6 +43,7 @@ interface BluetoothRemoteGATTService {
 }
 
 interface BluetoothRemoteGATTCharacteristic {
+  removeEventListener(arg0: string, handleCharacteristicValueChanged: (event: Event) => void): unknown;
   uuid: string;
   value?: DataView;
   writeValue(value: BufferSource): Promise<void>;

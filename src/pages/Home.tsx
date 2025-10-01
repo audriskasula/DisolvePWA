@@ -1,38 +1,21 @@
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import BLE from "../components/ble";
+import { Link } from "react-router-dom";
+import { useBLE } from "../components/BLEContext";
 
 export default function Home() {
+  const { isConnected, connect, disconnect } = useBLE();
   const [unlockedLevel, setUnlockedLevel] = useState(1);
   const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
-  const [isBleOpen, setIsBleOpen] = useState(false);
-
+  const [isConnecting, setIsConnecting] = useState(false);
   const levels = [1, 2, 3, 4, 5, 6];
 
   useEffect(() => {
     const saved = localStorage.getItem("unlockedLevel");
-    if (saved) {
-      setUnlockedLevel(Number(saved));
-    }
+    if (saved) setUnlockedLevel(Number(saved));
 
-    const handleStorageChange = () => {
-      const updated = localStorage.getItem("unlockedLevel");
-      if (updated) {
-        setUnlockedLevel(Number(updated));
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    const handleResize = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
-    };
+    const handleResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
     window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleReset = () => {
@@ -41,11 +24,24 @@ export default function Home() {
     alert("Progress berhasil direset!");
   };
 
+  const handleScan = async () => {
+    try {
+      setIsConnecting(true);
+      await connect();
+      alert("✅ BLE berhasil terhubung!");
+    } catch (err) {
+      console.error("Gagal konek BLE:", err);
+      alert("❌ Gagal konek BLE!");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   if (!isLandscape) {
     return (
       <div className="bg-purple-600 h-screen flex items-center justify-center">
         <h1 className="text-white text-center text-xl font-bold px-6">
-          Please rotate, untuk pindah ke mode landscape dan aplikasi dapat digunakan
+          Please rotate ke mode landscape
         </h1>
       </div>
     );
@@ -57,14 +53,33 @@ export default function Home() {
         WELCOME TO DISSOLVE
       </h1>
 
-      {/* Button BLE + Reset */}
+      {/* Tombol BLE dan Reset */}
       <div className="mb-6 flex gap-4">
         <button
-          onClick={() => setIsBleOpen(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition"
+          disabled={isConnecting || isConnected}
+          onClick={handleScan}
+          className={`px-4 py-2 rounded-lg shadow transition ${
+            isConnected
+              ? "bg-green-500 text-white"
+              : "bg-blue-500 hover:bg-blue-600 text-white"
+          }`}
         >
-          🔍 Scan BLE
+          {isConnecting
+            ? "⏳ Scanning..."
+            : isConnected
+            ? "✅ Connected"
+            : "🔍 Scan BLE"}
         </button>
+
+        {isConnected && (
+          <button
+            onClick={disconnect}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-600 transition"
+          >
+            ❌ Disconnect
+          </button>
+        )}
+
         <button
           onClick={handleReset}
           className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition"
@@ -72,6 +87,12 @@ export default function Home() {
           ♻️ Reset Progress
         </button>
       </div>
+
+      {/* Status koneksi */}
+      <p className="text-white mb-4">
+        Status BLE:{" "}
+        <b>{isConnected ? "✅ Terhubung" : "❌ Belum Terhubung"}</b>
+      </p>
 
       {/* Level cards */}
       <div className="flex overflow-x-auto gap-4 w-full px-4 snap-x snap-mandatory">
@@ -93,29 +114,6 @@ export default function Home() {
           </div>
         ))}
       </div>
-
-      {/* Modal BLE dengan Backdrop */}
-      {isBleOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* 🔑 Backdrop */}
-          <div
-            className="absolute inset-0"
-            onClick={() => setIsBleOpen(false)}
-          />
-
-          {/* 🔑 Modal Box */}
-          <div className="relative bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md animate-fadeInScale">
-            <button
-              onClick={() => setIsBleOpen(false)}
-              className="absolute top-2 right-2 text-gray-600 hover:text-black cursor-pointer"
-            >
-              ✖
-            </button>
-            <h2 className="text-lg font-bold mb-4">Bluetooth Scan</h2>
-            <BLE />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
