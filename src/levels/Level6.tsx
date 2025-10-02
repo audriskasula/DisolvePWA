@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./CSS/level1.css";
+import "./CSS/level.css"; // ✅ Pakai CSS elegan dari Bang
 import { useBLE } from "../components/BLEContext";
 
 const COMBINATIONS = ["xabcfy", "bafxcg", "cxabfy", "afxbcg", "fcbxay"];
@@ -19,39 +19,36 @@ export default function Level6() {
   const correctSetRef = useRef<Set<string>>(new Set());
   const waitingResetRef = useRef(false);
 
-  useEffect(() => { indexRef.current = index; }, [index]);
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   const currentCombo = COMBINATIONS[index];
   const allLetters = currentCombo.split("");
 
   useEffect(() => {
-    console.log("📡 Listener BLE aktif Level6");
-
     const unsub = subscribe(async (msg) => {
       console.log("📥 Pesan dari alat:", msg);
 
       if (msg.startsWith("CORRECT:")) {
         const letter = msg.split(":").pop()?.trim();
         if (letter && allLetters.includes(letter)) {
-          console.log(`✅ Huruf benar: ${letter}`);
           correctSetRef.current.add(letter);
-
           if (correctSetRef.current.size === allLetters.length) {
-            console.log("🎉 Semua huruf benar → kirim RESET");
             waitingResetRef.current = true;
             await delay(2000);
             await send("RESET");
           }
         }
-      } 
-      else if (msg.startsWith("WRONG")) {
-        console.log("❌ Salah → kirim RESET dan ulang kombinasi");
+      } else if (msg.startsWith("WRONG")) {
         waitingResetRef.current = true;
         correctSetRef.current.clear();
         await delay(2000);
         await send("RESET");
-      } 
-      else if (msg.startsWith("PUZZLE_RESET") || msg.startsWith("NEW_PUZZLE")) {
+      } else if (
+        msg.startsWith("PUZZLE_RESET") ||
+        msg.startsWith("NEW_PUZZLE")
+      ) {
         if (waitingResetRef.current) {
           waitingResetRef.current = false;
 
@@ -62,35 +59,26 @@ export default function Level6() {
               localStorage.setItem("level6_index", String(nextIndex));
               indexRef.current = nextIndex;
               correctSetRef.current.clear();
-              const nextCombo = COMBINATIONS[nextIndex];
-              console.log(`➡️ Kirim kombinasi berikut: ${nextCombo}`);
               await delay(2000);
-              await send(nextCombo);
+              await send(COMBINATIONS[nextIndex]);
             } else {
-              console.log("🏁 Level6 selesai!");
               await send("VICTORY");
               localStorage.setItem("unlockedLevel", "6");
               alert("🎉 SELAMAT! Semua level selesai!");
               navigate("/");
             }
           } else {
-            console.log(`↩️ Ulang kombinasi: ${currentCombo}`);
             await delay(2000);
             await send(currentCombo);
           }
         }
       }
     });
-
-    return () => {
-      console.log("🛑 Listener BLE dilepas Level6");
-      unsub();
-    };
+    return () => unsub();
   }, [send, subscribe, navigate, currentCombo, allLetters]);
 
   useEffect(() => {
     if (isConnected) {
-      console.log("📶 BLE siap, kirim kombinasi pertama:", currentCombo);
       (async () => {
         await delay(2000);
         await send(currentCombo);
@@ -100,24 +88,40 @@ export default function Level6() {
 
   return (
     <div className="containerLv1">
-      <div className="titleBox">Level 6 — Kombinasi Huruf</div>
+      <div className="level1-wrapper">
+        <div className="titleBox">Level 6 — Kombinasi Huruf</div>
 
-      <div className="board">
-        {currentCombo.split("").map((l, i) => (
-          <div key={i} className="slot filled"><span className="letter">{l}</span></div>
-        ))}
-        {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
-          <div key={`empty-${i}`} className="slot" />
-        ))}
-      </div>
+        {/* 🧩 Board huruf */}
+        <div className="board">
+          {currentCombo.split("").map((l, i) => (
+            <div key={i} className="slot filled">
+              <span className="letter">{l}</span>
+            </div>
+          ))}
+          {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
+            <div key={`empty-${i}`} className="slot" />
+          ))}
+        </div>
 
-      <div className="info">
-        Kombinasi saat ini:{" "}
-        <b>{currentCombo} ({index + 1}/{COMBINATIONS.length})</b>
-      </div>
+        {/* 📈 Info + Progress */}
+        <div className="text-center px-5">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${((index + 1) / COMBINATIONS.length) * 100}%`,
+              }}
+            ></div>
+          </div>
+          <div className="info-progress">
+            Progres: <strong>{index + 1}</strong> / {COMBINATIONS.length}
+          </div>
+        </div>
 
-      <div className="status">
-        {isConnected ? "✅ Connected" : "❌ Not Connected"}
+        {/* 🛰 Status BLE */}
+        <div className={`status ${isConnected ? "ready" : "sending"}`}>
+          {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
+        </div>
       </div>
     </div>
   );
