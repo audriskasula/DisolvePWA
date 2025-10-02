@@ -1,35 +1,34 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./CSS/level1.css";
+import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
 
-// Huruf-huruf yang harus discan
+// 🎯 Huruf-huruf target
 const ALPHABET = "abcfx".split("");
 
-// Fungsi bantu delay
+// 🕒 Fungsi delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Level1() {
   const { isConnected, send, subscribe } = useBLE();
   const navigate = useNavigate();
 
-  // 📌 Simpan index huruf saat ini
+  // 🔢 Index huruf aktif (disimpan di localStorage agar tidak reset saat refresh)
   const [charIndex, setCharIndex] = useState(() => {
     const saved = localStorage.getItem("level1_index");
     return saved ? Number(saved) : 0;
   });
 
-  // 📌 Ref untuk logic listener
   const charIndexRef = useRef(charIndex);
   const isWaitingResetRef = useRef(false);
-  const lastWasWrongRef = useRef(false); // ✅ tracking kondisi terakhir
+  const lastWasWrongRef = useRef(false);
 
-  // 🔁 Sinkronisasi ref
+  // 🔁 Sinkronisasi state ke ref
   useEffect(() => {
     charIndexRef.current = charIndex;
   }, [charIndex]);
 
-  // 🔹 Listener BLE
+  // 📡 Listener BLE
   useEffect(() => {
     console.log("📡 Listener BLE aktif");
 
@@ -39,38 +38,30 @@ export default function Level1() {
       const currentLetter = ALPHABET[currentIndex];
 
       if (msg.startsWith("CORRECT")) {
-        console.log(`✅ CORRECT (${currentLetter}) → delay lalu kirim RESET`);
+        console.log(`✅ CORRECT (${currentLetter})`);
         lastWasWrongRef.current = false;
         isWaitingResetRef.current = true;
-
-        // ⏳ Delay 800ms sebelum kirim RESET
         await delay(2000);
         await send("RESET");
-      } 
+      }
       else if (msg.startsWith("WRONG")) {
-        console.log(`❌ WRONG (${currentLetter}) → delay lalu kirim RESET`);
+        console.log(`❌ WRONG (${currentLetter})`);
         lastWasWrongRef.current = true;
         isWaitingResetRef.current = true;
-
-        // ⏳ Delay 800ms sebelum kirim RESET
         await delay(2000);
         await send("RESET");
-      } 
+      }
       else if (msg.startsWith("PUZZLE_RESET") || msg.startsWith("NEW_PUZZLE")) {
         console.log("🔵 Alat siap puzzle baru");
 
-        // Hanya proses jika sebelumnya kita sedang menunggu reset
         if (isWaitingResetRef.current) {
           isWaitingResetRef.current = false;
 
           if (lastWasWrongRef.current) {
-            // ❌ Ulang huruf yang sama
             console.log(`↩️ Ulang huruf karena salah: ${currentLetter}`);
-            // Delay kecil biar alat sempat biru dulu
             await delay(2000);
             await send(currentLetter);
           } else {
-            // ✅ Lanjut huruf berikutnya
             const nextIndex = currentIndex + 1;
             if (nextIndex < ALPHABET.length) {
               const nextLetter = ALPHABET[nextIndex];
@@ -80,7 +71,6 @@ export default function Level1() {
               localStorage.setItem("level1_index", String(nextIndex));
               charIndexRef.current = nextIndex;
 
-              // Delay kecil sebelum kirim huruf baru
               await delay(2000);
               await send(nextLetter);
             } else {
@@ -101,12 +91,11 @@ export default function Level1() {
     };
   }, [send, subscribe, navigate]);
 
-  // 🔹 Saat pertama kali konek BLE
+  // 📶 Saat pertama kali konek BLE
   useEffect(() => {
     if (isConnected) {
       const letter = ALPHABET[charIndexRef.current];
       console.log("📶 BLE siap, kirim huruf pertama:", letter);
-      // Delay kecil agar alat siap
       (async () => {
         await delay(2000);
         await send(letter);
@@ -116,33 +105,59 @@ export default function Level1() {
 
   const currentLetter = ALPHABET[charIndex];
 
+  // 🎨 Tampilan UI
   return (
     <div className="containerLv1">
-      <div className="titleBox">Tempelkan Huruf Sesuai Gambar</div>
+      <div className="level1-wrapper">
+        <div className="titleBox">Tempelkan Huruf Sesuai Gambar</div>
 
-      <div className="board">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i}>
-            {i === 0 ? (
-              <div className="slot filled">
-                <span className="letter">{currentLetter}</span>
-              </div>
-            ) : (
-              <div className="slot" />
-            )}
+        <div className="info">
+          <div className="info-label">Huruf <br /> Saat Ini</div>
+          <div className="font-bold text-3xl mx-5 text-gray-500">:</div>
+          <div className="info-letter">{currentLetter.toUpperCase()}</div>
+        </div>
+
+
+        <div className="board">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={`slot ${i === 0 ? "filled" : ""}`}>
+              {i === 0 && <span className="letter">{currentLetter}</span>}
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center px-5">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${((charIndex + 1) / ALPHABET.length) * 100}%`,
+              }}
+            ></div>
           </div>
-        ))}
-      </div>
+          <div className="info-progress">
+            Progres: <strong>{charIndex + 1}</strong> / {ALPHABET.length}
+          </div>
+        </div>
 
-      <div className="info">
-        Huruf saat ini:{" "}
-        <b>
-          {currentLetter} ({charIndex + 1}/{ALPHABET.length})
-        </b>
-      </div>
+        <div className="flex justify-center items-center gap-7 px-5">
+          <div className="ble-container">
+            <div className="ble-status">
+              {isConnected ? "Connected" : "Disconnected"}
+            </div>
+            <div className="ble-note">
+              Pastikan alat BLE aktif dan terhubung
+            </div>
+          </div>
 
-      <div className="status">
-        {isConnected ? "✅ Connected" : "❌ Not Connected"}
+          <div
+            className={`status ${isConnected ? "ready" : "sending"
+              }`}
+          >
+            {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
+          </div>
+        </div>
+
       </div>
     </div>
   );
