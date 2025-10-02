@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./CSS/level1.css";
+import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
 
 // 📌 Kombinasi huruf untuk level 2
@@ -48,18 +48,18 @@ export default function Level2() {
           if (correctSetRef.current.size === allLetters.length) {
             console.log("🎉 Semua huruf kombinasi benar → kirim RESET & lanjut");
             waitingResetRef.current = true;
-            await delay(700);
+            await delay(2000);
             await send("RESET");
           }
         }
-      } 
+      }
       else if (msg.startsWith("WRONG")) {
         console.log("❌ Salah → kirim RESET dan ulang kombinasi");
         waitingResetRef.current = true;
         correctSetRef.current.clear(); // reset progress
-        await delay(700);
+        await delay(2000);
         await send("RESET");
-      } 
+      }
       else if (msg.startsWith("PUZZLE_RESET") || msg.startsWith("NEW_PUZZLE")) {
         if (waitingResetRef.current) {
           waitingResetRef.current = false;
@@ -73,7 +73,7 @@ export default function Level2() {
               correctSetRef.current.clear();
               const nextCombo = COMBINATIONS[nextIndex];
               console.log(`➡️ Kirim kombinasi berikut: ${nextCombo}`);
-              await delay(500);
+              await delay(1000);
               await send(nextCombo);
             } else {
               console.log("🏁 Level2 selesai!");
@@ -84,7 +84,7 @@ export default function Level2() {
           } else {
             // belum lengkap → kirim ulang kombinasi
             console.log(`↩️ Ulang kombinasi: ${currentCombo}`);
-            await delay(500);
+            await delay(1000);
             await send(currentCombo);
           }
         }
@@ -102,37 +102,57 @@ export default function Level2() {
     if (isConnected) {
       console.log("📶 BLE siap, kirim kombinasi pertama:", currentCombo);
       (async () => {
-        await delay(500);
+        await delay(1000);
         await send(currentCombo);
       })();
     }
   }, [isConnected, send, currentCombo]);
 
-  // 🔠 Tampilan tetap sama
+  // 🔠 Tampilan UI
   return (
     <div className="containerLv1">
-      <div className="titleBox">Level 2 — Kombinasi Huruf</div>
+      <div className="level1-wrapper animate-fadeInScale">
+        <div className="titleBox">Level 2 — Kombinasi Huruf</div>
 
-      <div className="board">
-        {currentCombo.split("").map((l, i) => (
-          <div key={i} className="slot filled">
-            <span className="letter">{l}</span>
+        <div className="info">
+          <div className="info-label">Kombinasi Saat Ini</div>
+          <div className="info-progress">
+            <b>
+              {currentCombo.toUpperCase()} ({index + 1}/{COMBINATIONS.length})
+            </b>
           </div>
-        ))}
-        {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
-          <div key={`empty-${i}`} className="slot" />
-        ))}
-      </div>
+        </div>
 
-      <div className="info">
-        Kombinasi saat ini:{" "}
-        <b>
-          {currentCombo} ({index + 1}/{COMBINATIONS.length})
-        </b>
-      </div>
+        {/* Huruf board */}
+        <div className="board">
+          {currentCombo.split("").map((l, i) => (
+            <div key={i} className="slot filled">
+              <span className="letter">{l.toUpperCase()}</span>
+            </div>
+          ))}
+          {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
+            <div key={`empty-${i}`} className="slot" />
+          ))}
+        </div>
 
-      <div className="status">
-        {isConnected ? "✅ Connected" : "❌ Not Connected"}
+        <div className="text-center px-5">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${((index + 1) / COMBINATIONS.length) * 100}%`,
+              }}
+            ></div>
+          </div>
+          <div className="info-progress">
+            Progres: <strong>{index + 1}</strong> / {COMBINATIONS.length}
+          </div>
+        </div>
+
+        {/* Status koneksi */}
+        <div className={`status ${isConnected ? "ready" : "sending"}`}>
+          {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
+        </div>
       </div>
     </div>
   );

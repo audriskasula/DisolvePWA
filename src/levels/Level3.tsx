@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./CSS/level1.css";
+import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
 
 const COMBINATIONS = ["abc", "bfx", "cxa", "xaf", "fcb"];
@@ -19,11 +19,14 @@ export default function Level3() {
   const correctSetRef = useRef<Set<string>>(new Set());
   const waitingResetRef = useRef(false);
 
-  useEffect(() => { indexRef.current = index; }, [index]);
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   const currentCombo = COMBINATIONS[index];
   const allLetters = currentCombo.split("");
 
+  // 📡 Listener BLE
   useEffect(() => {
     console.log("📡 Listener BLE aktif Level3");
 
@@ -43,13 +46,15 @@ export default function Level3() {
             await send("RESET");
           }
         }
-      } else if (msg.startsWith("WRONG")) {
+      }
+      else if (msg.startsWith("WRONG")) {
         console.log("❌ Salah → kirim RESET dan ulang");
         waitingResetRef.current = true;
         correctSetRef.current.clear();
         await delay(2000);
         await send("RESET");
-      } else if (msg.startsWith("PUZZLE_RESET") || msg.startsWith("NEW_PUZZLE")) {
+      }
+      else if (msg.startsWith("PUZZLE_RESET") || msg.startsWith("NEW_PUZZLE")) {
         if (waitingResetRef.current) {
           waitingResetRef.current = false;
           if (correctSetRef.current.size === allLetters.length) {
@@ -81,6 +86,7 @@ export default function Level3() {
     return () => unsub();
   }, [send, subscribe, navigate, currentCombo, allLetters]);
 
+  // 📤 Kirim kombinasi pertama saat BLE tersambung
   useEffect(() => {
     if (isConnected) {
       console.log("📶 Kirim pertama:", currentCombo);
@@ -93,19 +99,45 @@ export default function Level3() {
 
   return (
     <div className="containerLv1">
-      <div className="titleBox">Level 3 — Kombinasi Huruf</div>
-      <div className="board">
-        {currentCombo.split("").map((l, i) => (
-          <div key={i} className="slot filled"><span className="letter">{l}</span></div>
-        ))}
-        {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
-          <div key={`empty-${i}`} className="slot" />
-        ))}
+      <div className="level1-wrapper animate-fadeInScale">
+        <div className="titleBox">Level 3 — Kombinasi Huruf</div>
+
+        <div className="board">
+          {currentCombo.split("").map((l, i) => (
+            <div key={i} className="slot filled">
+              <span className="letter">{l}</span>
+            </div>
+          ))}
+          {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
+            <div key={`empty-${i}`} className="slot" />
+          ))}
+        </div>
+
+        <div className="text-center px-5">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${((index + 1) / COMBINATIONS.length) * 100}%`,
+              }}
+            ></div>
+          </div>
+          <div className="info-progress">
+            Progres: <strong>{index + 1}</strong> / {COMBINATIONS.length}
+          </div>
+        </div>
+
+        <div className="info">
+          Kombinasi saat ini:{" "}
+          <b>
+            {currentCombo} ({index + 1}/{COMBINATIONS.length})
+          </b>
+        </div>
+
+        <div className={`status ${isConnected ? "ready" : "sending"}`}>
+          {isConnected ? "✅ Connected" : "❌ Not Connected"}
+        </div>
       </div>
-      <div className="info">
-        Kombinasi saat ini: <b>{currentCombo} ({index + 1}/{COMBINATIONS.length})</b>
-      </div>
-      <div className="status">{isConnected ? "✅ Connected" : "❌ Not Connected"}</div>
     </div>
   );
 }

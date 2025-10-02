@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useBLE } from "../components/BLEContext";
+import "../levels/CSS/level.css";
 
 export default function Home() {
   const { isConnected, connect, disconnect } = useBLE();
@@ -39,80 +40,75 @@ export default function Home() {
 
   if (!isLandscape) {
     return (
-      <div className="bg-purple-600 h-screen flex items-center justify-center">
+      <div className="containerLv1">
         <h1 className="text-white text-center text-xl font-bold px-6">
-          Please rotate ke mode landscape
+          📱 Silakan rotasi ke mode landscape
         </h1>
       </div>
     );
   }
 
   return (
-    <div className="bg-purple-600 h-screen flex flex-col items-center justify-start px-4 py-6 overflow-hidden">
-      <h1 className="text-2xl font-bold text-center mb-6 text-white">
-        WELCOME TO DISSOLVE
-      </h1>
+    <div className="containerLv1">
+      <div className="level1-wrapper animate-fadeInScale">
+        <div className="titleBox">Welcome to Dissolve</div>
 
-      {/* Tombol BLE dan Reset */}
-      <div className="mb-6 flex gap-4">
-        <button
-          disabled={isConnecting || isConnected}
-          onClick={handleScan}
-          className={`px-4 py-2 rounded-lg shadow transition ${
-            isConnected
-              ? "bg-green-500 text-white"
-              : "bg-blue-500 hover:bg-blue-600 text-white"
-          }`}
-        >
-          {isConnecting
-            ? "⏳ Scanning..."
-            : isConnected
-            ? "✅ Connected"
-            : "🔍 Scan BLE"}
-        </button>
 
-        {isConnected && (
+
+        <div className="flex justify-center gap-3 my-4">
           <button
-            onClick={disconnect}
-            className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-600 transition"
+            disabled={isConnecting || isConnected}
+            onClick={handleScan}
+            className={`px-4 py-2 rounded-lg font-semibold text-white shadow transition ${isConnected
+                ? "bg-green-500"
+                : "bg-indigo-500 hover:bg-indigo-600"
+              }`}
           >
-            ❌ Disconnect
+            {isConnecting
+              ? "⏳ Scanning..."
+              : isConnected
+                ? "✅ Connected"
+                : "🔍 Scan BLE"}
           </button>
-        )}
 
-        <button
-          onClick={handleReset}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition"
-        >
-          ♻️ Reset Progress
-        </button>
-      </div>
 
-      {/* Status koneksi */}
-      <p className="text-white mb-4">
-        Status BLE:{" "}
-        <b>{isConnected ? "✅ Terhubung" : "❌ Belum Terhubung"}</b>
-      </p>
+          {isConnected && (
+            <button
+              onClick={disconnect}
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold shadow"
+            >
+              ❌ Disconnect
+            </button>
+          )}
 
-      {/* Level cards */}
-      <div className="flex overflow-x-auto gap-4 w-full px-4 snap-x snap-mandatory">
-        {levels.map((lvl) => (
-          <div
-            key={lvl}
-            className="min-w-[160px] min-h-[12rem] bg-amber-50 flex items-center justify-center rounded-lg shadow-md snap-start"
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold shadow"
           >
-            {lvl <= unlockedLevel ? (
-              <Link
-                to={`/level${lvl}`}
-                className="text-xl font-bold text-blue-600"
-              >
-                Level {lvl}
-              </Link>
-            ) : (
-              <div className="text-gray-500 text-lg">🔒 Locked</div>
-            )}
-          </div>
-        ))}
+            ♻️ Reset Progress
+          </button>
+        </div>
+
+        <div
+          className={`status ${isConnected ? "ready" : "sending"
+            }`}
+        >
+          {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
+        </div>
+
+        <div className="board">
+          {levels.map((lvl) => (
+            <Link to={`/level${lvl}`} key={lvl} className={`slot letter ${lvl <= unlockedLevel ? "filled" : ""}`}>
+              {lvl <= unlockedLevel ? (
+                <div>
+                  {lvl}
+                </div>
+              ) : ( 
+                <span className="letter">🔒</span>
+              )}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
