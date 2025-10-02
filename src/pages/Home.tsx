@@ -60,8 +60,8 @@ export default function Home() {
             disabled={isConnecting || isConnected}
             onClick={handleScan}
             className={`px-4 py-2 rounded-lg font-semibold text-white shadow transition ${isConnected
-                ? "bg-green-500"
-                : "bg-indigo-500 hover:bg-indigo-600"
+              ? "bg-green-500"
+              : "bg-indigo-500 hover:bg-indigo-600"
               }`}
           >
             {isConnecting
@@ -98,17 +98,22 @@ export default function Home() {
 
         <div className="board">
           {levels.map((lvl) => (
-            <Link to={`/level${lvl}`} key={lvl} className={`slot letter ${lvl <= unlockedLevel ? "filled" : ""}`}>
-              {lvl <= unlockedLevel ? (
-                <div>
-                  {lvl}
-                </div>
-              ) : ( 
+            lvl <= unlockedLevel ? (
+              <Link
+                key={lvl}
+                to={`/level${lvl}`}
+                className="slot letter filled"
+              >
+                {lvl}
+              </Link>
+            ) : (
+              <div key={lvl} className="slot letter">
                 <span className="letter">🔒</span>
-              )}
-            </Link>
+              </div>
+            )
           ))}
         </div>
+
       </div>
     </div>
   );
