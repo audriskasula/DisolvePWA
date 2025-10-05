@@ -1,11 +1,11 @@
-export const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("")
+export const ALPHABET = "abdefghijklmnopqrstuvwxyz".split("")
 
 export const COMBINATIONS_LV2 = [
     "di", "ke", "ku", "mu", "ya", "sa", "si", "tu", "ta", "la", "ma", "na", "pa", "da", "no", "in", "me", "do", "an", "as"
 ]
 
 export const COMBINATIONS_LV3 = [
-    "ada", "aku", "dia", "air", "api", "itu", "iya", "doa", "sen", "tas", "jam", "cat", "top", "rat", "mur", "jan", "bar", "bun", "ben", "don"
+    "ada", "aku", "dia", "air", "api", "itu", "iya", "doa", "sen", "tas", "jam", "top", "rat", "mur", "jan", "bar", "bun", "ben", "don"
 ]
 
 export const COMBINATIONS_LV4 = [
@@ -17,7 +17,7 @@ export const COMBINATIONS_LV5 = [
 
 ]
 export const COMBINATIONS_LV6 = [
-    "pandai", "landai", "sandar", "handal", "tandan", "padang", "bandar", "tangan", "mandat", "dandan", "mandek", "tandas", "pandan", "sandal", "sehari", "lemari", "bandit", "beliau", "pulang", "cermin"
+    "pandai", "landai", "sandar", "handal", "tandan", "padang", "bandar", "tangan", "mandat", "dandan", "mandek", "tandas", "pandan", "sandal", "sehari", "lemari", "bandit", "beliau", "pulang"
 ]
 
 
