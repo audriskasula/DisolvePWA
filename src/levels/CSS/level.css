@@ -68,10 +68,9 @@
 }
 
 .letter {
-  text-transform: uppercase;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   animation: letterPop 0.3s ease;
-  font-size: 5rem;
+  font-size: 6rem;
 }
 
 .info {
