@@ -124,9 +124,9 @@ export default function Level2() {
 
         {/* Huruf board */}
         <div className="board">
-          {currentCombo.split("").map((l, i) => (
+          {currentCombo.split("").map((letter, i) => (
             <div key={i} className="slot filled">
-              <span className="letter">{l.toUpperCase()}</span>
+              <span className="letter">{letter}</span>
             </div>
           ))}
           {Array.from({ length: 6 - currentCombo.length }).map((_, i) => (
