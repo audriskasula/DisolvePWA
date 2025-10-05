@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CSS/level.css"; // ✅ Pakai CSS elegan dari Bang
 import { useBLE } from "../components/BLEContext";
+import { COMBINATIONS_LV6 } from "./combinationLevel";
 
-const COMBINATIONS = ["xabcfy", "bafxcg", "cxabfy", "afxbcg", "fcbxay"];
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Level6() {
@@ -23,7 +23,7 @@ export default function Level6() {
     indexRef.current = index;
   }, [index]);
 
-  const currentCombo = COMBINATIONS[index];
+  const currentCombo = COMBINATIONS_LV6[index];
   const allLetters = currentCombo.split("");
 
   useEffect(() => {
@@ -54,13 +54,13 @@ export default function Level6() {
 
           if (correctSetRef.current.size === allLetters.length) {
             const nextIndex = indexRef.current + 1;
-            if (nextIndex < COMBINATIONS.length) {
+            if (nextIndex < COMBINATIONS_LV6.length) {
               setIndex(nextIndex);
               localStorage.setItem("level6_index", String(nextIndex));
               indexRef.current = nextIndex;
               correctSetRef.current.clear();
               await delay(2000);
-              await send(COMBINATIONS[nextIndex]);
+              await send(COMBINATIONS_LV6[nextIndex]);
             } else {
               await send("VICTORY");
               localStorage.setItem("unlockedLevel", "6");
@@ -89,7 +89,7 @@ export default function Level6() {
   return (
     <div className="containerLv1">
       <div className="level1-wrapper">
-        <div className="titleBox">Level 6 — Kombinasi Huruf</div>
+        <div className="titleBox">Level 6</div>
 
         {/* 🧩 Board huruf */}
         <div className="board">
@@ -109,18 +109,31 @@ export default function Level6() {
             <div
               className="progress-fill"
               style={{
-                width: `${((index + 1) / COMBINATIONS.length) * 100}%`,
+                width: `${((index + 1) / COMBINATIONS_LV6.length) * 100}%`,
               }}
             ></div>
           </div>
           <div className="info-progress">
-            Progres: <strong>{index + 1}</strong> / {COMBINATIONS.length}
+            Progres: <strong>{index + 1}</strong> / {COMBINATIONS_LV6.length}
           </div>
         </div>
 
-        {/* 🛰 Status BLE */}
-        <div className={`status ${isConnected ? "ready" : "sending"}`}>
-          {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
+        <div className="flex justify-center items-center gap-7 px-5">
+          <div className="ble-container">
+            <div className="ble-status">
+              {isConnected ? "Connected" : "Disconnected"}
+            </div>
+            <div className="ble-note">
+              Pastikan alat BLE aktif dan terhubung
+            </div>
+          </div>
+
+          <div
+            className={`status ${isConnected ? "ready" : "sending"
+              }`}
+          >
+            {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
+          </div>
         </div>
       </div>
     </div>

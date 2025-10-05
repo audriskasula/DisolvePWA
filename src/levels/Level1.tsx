@@ -2,11 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
+import { ALPHABET } from "./combinationLevel";
 
-// 🎯 Huruf-huruf target
-const ALPHABET = "abcfx".split("");
-
-// 🕒 Fungsi delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Level1() {
@@ -111,11 +108,11 @@ export default function Level1() {
       <div className="level1-wrapper">
         <div className="titleBox">Tempelkan Huruf Sesuai Gambar</div>
 
-        <div className="info">
+        {/* <div className="info">
           <div className="info-label">Huruf <br /> Saat Ini</div>
           <div className="font-bold text-3xl mx-5 text-gray-500">:</div>
           <div className="info-letter">{currentLetter.toUpperCase()}</div>
-        </div>
+        </div> */}
 
 
         <div className="board">
