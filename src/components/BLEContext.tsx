@@ -18,10 +18,10 @@ interface BLEContextType {
 const BLEContext = createContext<BLEContextType>({
   isConnected: false,
   lastMessage: "",
-  connect: async () => {},
-  disconnect: () => {},
-  send: async () => {},
-  subscribe: () => () => {},
+  connect: async () => { },
+  disconnect: () => { },
+  send: async () => { },
+  subscribe: () => () => { },
 });
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -35,6 +35,7 @@ export const BLEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const cmdCharRef = useRef<BluetoothRemoteGATTCharacteristic | null>(null);
   const notifyCharRef = useRef<BluetoothRemoteGATTCharacteristic | null>(null);
   const subscribersRef = useRef<Set<MsgHandler>>(new Set());
+
 
   // ✅ Kirim pesan ke semua subscriber
   const broadcast = (msg: string) => {
@@ -90,8 +91,8 @@ export const BLEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (deviceRef.current?.gatt?.connected) {
         deviceRef.current.gatt.disconnect();
       }
-    } catch (err) {
-      console.warn("❌ Gagal disconnect:", err);
+    } catch {
+      console.log("first")
     }
     deviceRef.current = null;
     cmdCharRef.current = null;
@@ -100,43 +101,24 @@ export const BLEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     console.warn("🔌 BLE disconnected");
   };
 
-  // ✅ Reconnect otomatis
-  const reconnect = async (device: BluetoothDevice) => {
-    try {
-      if (!device.gatt) {
-        console.error("GATT server tidak tersedia untuk reconnect");
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const server = await device.gatt.connect();
-      console.log("🔁 Berhasil reconnect ke:", device.name);
-      const service = await server.getPrimaryService(SERVICE_UUID);
-      const cmdChar = await service.getCharacteristic(CHAR_CMD_UUID);
-      const notifyChar = await service.getCharacteristic(CHAR_NOTIFY_UUID);
-
-      cmdCharRef.current = cmdChar;
-      notifyCharRef.current = notifyChar;
-
-      await notifyChar.startNotifications();
-      notifyChar.addEventListener("characteristicvaluechanged", handleNotify);
-
-      setIsConnected(true);
-    } catch (err) {
-      console.error("Gagal reconnect:", err);
-      setTimeout(() => reconnect(device), 5000);
-    }
-  };
-
   // ✅ Connect BLE
-  const connect = async () => {
+  const connect = async (opts?: { namePrefix?: string }) => {
     try {
-      const options = {
-        filters: [{ name: "Dissolve" }], // 🎯 hanya perangkat bernama Dissolve
-        optionalServices: [SERVICE_UUID],
-      } as RequestDeviceOptions;
+      let device: BluetoothDevice;
 
-      const device = await navigator.bluetooth.requestDevice(options);
-      console.log("Perangkat ditemukan:", device.name);
+      if (opts?.namePrefix) {
+        const options = {
+          filters: [{ namePrefix: opts.namePrefix }],
+          optionalServices: [SERVICE_UUID],
+        } as RequestDeviceOptions;
+        device = await navigator.bluetooth.requestDevice(options);
+      } else {
+        const options = {
+          acceptAllDevices: true,
+          optionalServices: [SERVICE_UUID],
+        } as RequestDeviceOptions;
+        device = await navigator.bluetooth.requestDevice(options);
+      }
 
       const server = await device.gatt?.connect();
       const service = await server?.getPrimaryService(SERVICE_UUID);
@@ -150,15 +132,13 @@ export const BLEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await notifyChar?.startNotifications();
       notifyChar?.addEventListener("characteristicvaluechanged", handleNotify);
 
-      // Tambahkan event listener disconnect
       device.addEventListener("gattserverdisconnected", () => {
         console.warn("⚠️ BLE terputus otomatis");
         setIsConnected(false);
-        reconnect(device); // 🔁 Coba reconnect otomatis
       });
 
       setIsConnected(true);
-      console.log("✅ BLE berhasil terhubung ke:", device.name);
+      console.log("✅ BLE berhasil terhubung");
     } catch (err) {
       console.error("💥 Gagal konek BLE:", err);
       setIsConnected(false);
@@ -171,9 +151,7 @@ export const BLEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <BLEContext.Provider
-      value={{ isConnected, lastMessage, connect, disconnect, send, subscribe }}
-    >
+    <BLEContext.Provider value={{ isConnected, lastMessage, connect, disconnect, send, subscribe }}>
       {children}
     </BLEContext.Provider>
   );

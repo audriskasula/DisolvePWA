@@ -1,7 +1,7 @@
-export const ALPHABET = "abdefghijklmnopqrstuvwxyz".split("")
+export const ALPHABET = "ab".split("")
 
 export const COMBINATIONS_LV2 = [
-    "di", "ke", "ku", "mu", "ya", "sa", "si", "tu", "ta", "la"
+    "di", "ke"
 ]
 
 export const COMBINATIONS_LV3 = [
