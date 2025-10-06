@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
-import { COMBINATIONS_LV5 } from "./combinationLevel";
 
+const COMBINATIONS = ["kursi", "petak", "lebar", "topi", "indah", "sabun", "bulan", "kayu", "senja", "peluk"];
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Level5() {
@@ -25,7 +25,7 @@ export default function Level5() {
     indexRef.current = index;
   }, [index]);
 
-  const currentCombo = COMBINATIONS_LV5[index];
+  const currentCombo = COMBINATIONS[index];
   const allLetters = currentCombo.split("");
 
   // 📡 Listener BLE
@@ -64,13 +64,13 @@ export default function Level5() {
           // Semua huruf sudah benar → lanjut kombinasi berikut
           if (correctSetRef.current.size === allLetters.length) {
             const nextIndex = indexRef.current + 1;
-            if (nextIndex < COMBINATIONS_LV5.length) {
+            if (nextIndex < COMBINATIONS.length) {
               setIndex(nextIndex);
               localStorage.setItem("level5_index", String(nextIndex));
               indexRef.current = nextIndex;
               correctSetRef.current.clear();
 
-              const nextCombo = COMBINATIONS_LV5[nextIndex];
+              const nextCombo = COMBINATIONS[nextIndex];
               console.log(`➡️ Kirim kombinasi berikut: ${nextCombo}`);
               await delay(2000);
               await send(nextCombo);
@@ -110,7 +110,7 @@ export default function Level5() {
   return (
     <div className="containerLv1">
       <div className="level1-wrapper animate-fadeInScale">
-        <div className="titleBox">Level 5</div>
+        <div className="titleBox">Level 5 — Kombinasi Huruf</div>
 
         <div className="board">
           {currentCombo.split("").map((l, i) => (
@@ -128,38 +128,24 @@ export default function Level5() {
             <div
               className="progress-fill"
               style={{
-                width: `${((index + 1) / COMBINATIONS_LV5.length) * 100}%`,
+                width: `${((index + 1) / COMBINATIONS.length) * 100}%`,
               }}
             ></div>
           </div>
           <div className="info-progress">
-            Progres: <strong>{index + 1}</strong> / {COMBINATIONS_LV5.length}
+            Progres: <strong>{index + 1}</strong> / {COMBINATIONS.length}
           </div>
         </div>
 
-        {/* <div className="info">
+        <div className="info">
           Kombinasi saat ini:{" "}
           <b>
-            {currentCombo} ({index + 1}/{COMBINATIONS_LV5.length})
+            {currentCombo} ({index + 1}/{COMBINATIONS.length})
           </b>
-        </div> */}
+        </div>
 
-        <div className="flex justify-center items-center gap-7 px-5">
-          <div className="ble-container">
-            <div className="ble-status">
-              {isConnected ? "Connected" : "Disconnected"}
-            </div>
-            <div className="ble-note">
-              Pastikan alat BLE aktif dan terhubung
-            </div>
-          </div>
-
-          <div
-            className={`status ${isConnected ? "ready" : "sending"
-              }`}
-          >
-            {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
-          </div>
+        <div className={`status ${isConnected ? "ready" : "sending"}`}>
+          {isConnected ? "✅ Connected" : "❌ Not Connected"}
         </div>
       </div>
     </div>
