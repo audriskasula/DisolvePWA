@@ -1,4 +1,4 @@
-export const ALPHABET = "ab".split("")
+export const ALPHABET = "abdefghijklmnopqrstuvwxyz".split("")
 
 export const COMBINATIONS_LV2 = [
     "di", "ke"
