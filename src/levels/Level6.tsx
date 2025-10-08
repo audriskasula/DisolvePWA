@@ -4,7 +4,7 @@ import "./CSS/level.css"; // ✅ Pakai CSS elegan dari Bang
 import { useBLE } from "../components/BLEContext";
 // import { COMBINATIONS_LV6 } from "./combinationLevel";
 
-const COMBINATIONS = ["tembok", "lembah", "bentuk", "gurita", "petani", "perahu", "pisang", "lembar", "kapten", "pelaku"];
+const COMBINATIONS = ["tembok", "lembah", "bentuk", "gurita", "petani"];
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Level6() {

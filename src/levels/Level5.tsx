@@ -5,7 +5,7 @@ import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
 // import { COMBINATIONS_LV5 } from "./combinationLevel";
 
-const COMBINATIONS = ["kursi", "petak", "lebar", "topi", "indah", "sabun", "bulan", "kayu", "senja", "peluk"];
+const COMBINATIONS = ["kursi", "petak", "lebar", "bulan", "indah"]
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Level5() {
