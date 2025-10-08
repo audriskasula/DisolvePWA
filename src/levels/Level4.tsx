@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CSS/level.css";
 import { useBLE } from "../components/BLEContext";
+// import { COMBINATIONS_LV4 } from "./combinationLevel";
 
 const COMBINATIONS = ["ulat", "daun", "duta", "nadi", "musa", "nasi", "meja", "pita", "ratu", "paku"];
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Level4() {
-  const { isConnected, send, subscribe } = useBLE();
+  const { isConnected, send, subscribe, connect } = useBLE();
   const navigate = useNavigate();
 
   // 🧠 Simpan dan ambil progress dari localStorage
@@ -103,9 +104,43 @@ export default function Level4() {
     }
   }, [isConnected, send, currentCombo]);
 
+  const handleResetLevel = async () => {
+    localStorage.removeItem("level1_index");
+    setIndex(0);
+    indexRef.current = 0;
+    console.log("🔄 Level 1 direset, mulai dari awal");
+
+    if (isConnected) {
+      await delay(1000);
+      await send(COMBINATIONS[0]); // kirim huruf pertama ulang
+    }
+  };
+
   return (
     <div className="containerLv1">
       <div className="level1-wrapper animate-fadeInScale">
+        <div className="flex gap-4">
+          <button className="btn-back cursor-pointer flex justify-center items-center flex-col-reverse gap-2" onClick={() => navigate("/")}>
+            <p>Home</p>
+            <img src="homeIcon.svg" alt="" />
+          </button>
+          <button className="btn-reset cursor-pointer flex justify-center items-center flex-col-reverse gap-2"
+            onClick={handleResetLevel}>
+            <p>Reset Level</p>
+            <img src="refreshIcon.svg" alt="" />
+          </button>
+          <button className="btn-connect cursor-pointer flex justify-center items-center flex-col-reverse gap-1"
+            onClick={async () => {
+              try {
+                await connect();
+              } catch (e) {
+                console.error("❌ Gagal konek BLE:", e);
+              }
+            }}>
+            <p>Reconnect</p>
+            <img src="bluetoothIcon.svg" alt="" width={28} />
+          </button>
+        </div>
         <div className="titleBox">Level 4</div>
 
         <div className="board">
