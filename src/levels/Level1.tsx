@@ -7,10 +7,10 @@ import { ALPHABET } from "./combinationLevel";
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Level1() {
-  const { isConnected, send, subscribe } = useBLE();
+  const { isConnected, send, subscribe, connect } = useBLE(); // pastikan ada connect()
   const navigate = useNavigate();
 
-  // 🔢 Index huruf aktif (disimpan di localStorage agar tidak reset saat refresh)
+  // 🔢 State index huruf
   const [charIndex, setCharIndex] = useState(() => {
     const saved = localStorage.getItem("level1_index");
     return saved ? Number(saved) : 0;
@@ -20,7 +20,7 @@ export default function Level1() {
   const isWaitingResetRef = useRef(false);
   const lastWasWrongRef = useRef(false);
 
-  // 🔁 Sinkronisasi state ke ref
+  // Sinkronisasi state dan ref
   useEffect(() => {
     charIndexRef.current = charIndex;
   }, [charIndex]);
@@ -88,7 +88,7 @@ export default function Level1() {
     };
   }, [send, subscribe, navigate]);
 
-  // 📶 Saat pertama kali konek BLE
+  // 📶 Saat konek pertama kali
   useEffect(() => {
     if (isConnected) {
       const letter = ALPHABET[charIndexRef.current];
@@ -102,18 +102,46 @@ export default function Level1() {
 
   const currentLetter = ALPHABET[charIndex];
 
-  // 🎨 Tampilan UI
+  // 🧹 Fungsi reset per level
+  const handleResetLevel = async () => {
+    localStorage.removeItem("level1_index");
+    setCharIndex(0);
+    charIndexRef.current = 0;
+    console.log("🔄 Level 1 direset, mulai dari awal");
+
+    if (isConnected) {
+      await delay(1000);
+      await send(ALPHABET[0]); // kirim huruf pertama ulang
+    }
+  };
+
   return (
     <div className="containerLv1">
       <div className="level1-wrapper">
+        <div className="flex gap-4">
+          <button className="btn-back cursor-pointer flex justify-center items-center flex-col-reverse gap-2" onClick={() => navigate("/")}>
+            <p>Home</p>
+            <img src="homeIcon.svg" alt="" />
+          </button>
+          <button className="btn-reset cursor-pointer flex justify-center items-center flex-col-reverse gap-2"
+            onClick={handleResetLevel}>
+            <p>Reset Level</p>
+            <img src="refreshIcon.svg" alt="" />
+          </button>
+          <button className="btn-connect cursor-pointer flex justify-center items-center flex-col-reverse gap-1"
+            onClick={async () => {
+              try {
+                await connect();
+              } catch (e) {
+                console.error("❌ Gagal konek BLE:", e);
+              }
+            }}>
+            <p>Reconnect</p>
+            <img src="bluetoothIcon.svg" alt="" width={28} />
+          </button>
+        </div>
+
         <div className="titleBox">Tempelkan Huruf Sesuai Gambar</div>
-
-        {/* <div className="info">
-          <div className="info-label">Huruf <br /> Saat Ini</div>
-          <div className="font-bold text-3xl mx-5 text-gray-500">:</div>
-          <div className="info-letter">{currentLetter.toUpperCase()}</div>
-        </div> */}
-
 
         <div className="board">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -147,10 +175,7 @@ export default function Level1() {
             </div>
           </div>
 
-          <div
-            className={`status ${isConnected ? "ready" : "sending"
-              }`}
-          >
+          <div className={`status ${isConnected ? "ready" : "sending"}`}>
             {isConnected ? "✅ BLE Terhubung" : "🔌 Menunggu Koneksi..."}
           </div>
         </div>
